@@ -1,0 +1,76 @@
+<div class="overflow-x-auto rounded-xl border border-light-2 bg-white shadow-sm">
+  <table class="min-w-full text-left whitespace-nowrap">
+    <thead class="bg-light-3 heading-6 text-dark-2 border-b border-light-2">
+      <tr>
+        @for (col of columns; track col.key) {
+          <th
+            scope="col"
+            class="px-6 py-3 font-semibold"
+            [ngClass]="{ 'text-right': col.type === 'action' }"
+          >
+            {{ col.label }}
+          </th>
+        }
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-light-2 overflow-y-auto">
+      @for (row of data; track row.id || $index) {
+        <tr
+          (click)="onRowClick(row)"
+          class="hover:bg-light-4 transition-colors cursor-pointer"
+          [ngClass]="{ 'bg-light-4': selectedRowId === row.id }"
+        >
+          @for (col of columns; track col.key) {
+            <td
+              class="px-6 py-4 text-dark-1 body-small"
+              [ngClass]="{ 'text-right': col.type === 'action' }"
+            >
+              @switch (col.type) {
+                @case ('badge') {
+                  <span
+                    class="inline-flex items-center justify-center px-3 py-1 rounded-full label-normal"
+                    [ngClass]="
+                      row[col.key]
+                        ? 'bg-success-subtle text-success-darker'
+                        : 'bg-error-subtle text-error-darker'
+                    "
+                  >
+                    {{ row[col.key] ? 'Activo' : 'Inactivo' }}
+                  </span>
+                }
+                @case ('action') {
+                  <div class="flex justify-end gap-3" (click)="$event.stopPropagation()">
+                    <button
+                      (click)="actionClick.emit({ action: 'edit', row: row })"
+                      class="text-dark-3 hover:text-info-primary transition-colors"
+                      title="Editar"
+                    >
+                      <i class="fa-solid fa-pencil"></i>
+                    </button>
+                    <button
+                      (click)="actionClick.emit({ action: 'deactivate', row: row })"
+                      class="text-dark-3 hover:text-error-primary transition-colors"
+                      title="Desactivar"
+                    >
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+                }
+                @default {
+                  <span>{{ row[col.key] }}</span>
+                }
+              }
+            </td>
+          }
+        </tr>
+      }
+      @if (data.length === 0) {
+        <tr>
+          <td [attr.colspan]="columns.length" class="px-6 py-8 text-center text-dark-2 body-normal">
+            No hay datos para mostrar
+          </td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

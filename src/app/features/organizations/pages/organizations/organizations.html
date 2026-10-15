@@ -1,0 +1,237 @@
+<div class="h-screen pt-20 md:pt-24 bg-light-2 p-4 md:p-6 flex flex-col md:flex-row gap-6">
+  <div class="flex-1 flex gap-6 overflow-y-auto">
+    <div
+      class="bg-light-4 rounded-2xl p-6 md:p-8 shadow-card flex flex-col h-full transition-all duration-300 overflow-hidden"
+      [ngClass]="selectedOrg() ? 'w-full lg:w-2/3 hidden lg:flex' : 'w-full'"
+    >
+      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+        <div>
+          <h2 class="heading-6 font-bold text-dark-1">Organizaciones</h2>
+        </div>
+
+        <div class="flex w-full sm:w-auto gap-3">
+          <div class="relative flex-1 sm:w-64">
+            <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-dark-3"></i>
+            <app-input placeholder="Buscar por nombre o correo..." [control]="searchControl" />
+          </div>
+          <app-button variant="color" (click)="openOrgModal()">
+            <div class="px-4">
+              <i class="fa-solid fa-plus"></i>
+              <span class="pl-1 hidden sm:inline">Crear organización</span>
+            </div>
+          </app-button>
+        </div>
+      </div>
+
+      <div class="flex-1 overflow-y-auto -mx-1 px-1 pb-4">
+        <app-table
+          [columns]="orgColumns"
+          [data]="organizations"
+          [selectedRowId]="selectedOrg()?.id"
+          (rowClick)="selectOrg($event)"
+        >
+        </app-table>
+      </div>
+    </div>
+
+    @if (selectedOrg(); as org) {
+      <div
+        class="w-full lg:w-1/3 bg-light-4 shadow-card rounded-2xl p-6 flex flex-col h-full overflow-y-auto relative animate-fade-in"
+      >
+        <button
+          (click)="selectOrg(null)"
+          class="absolute top-6 right-6 text-dark-3 hover:text-info-primary h-8 w-8 flex items-center justify-center"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="mb-8 pr-10">
+          <h3 class="text-2xl font-bold text-dark-1 leading-tight">{{ org.name }}</h3>
+        </div>
+        <div class="lg:row flex">
+          <div class="col mr-6">
+            <p class="text-dark-1 label-normal">Contacto:</p>
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-envelope w-4 text-dark-2"></i> {{ org.email }}
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-phone w-4 text-dark-2"></i> {{ org.phone || 'No registrado' }}
+            </div>
+            <div class="flex items-center gap-3">
+              <i class="fa-solid fa-link w-4 text-dark-2"></i> {{ org.website || 'No registrado' }}
+            </div>
+          </div>
+          <div class="col">
+            <p class="text-dark-1 label-normal">Ubicación:</p>
+            <div class="flex items-start gap-3">
+              <i class="fa-solid fa-location-dot w-4 text-dark-2"></i>
+              <div class="col">
+                <p>{{ org.address?.address || 'No registrado' }}</p>
+                <p>
+                  {{ org.address?.city || 'No registrada' }},
+                  {{ org.address?.state || 'No registrado' }}
+                </p>
+                <p>C.P. {{ org.address?.postCode || 'No registrado' }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="my-4 flex items-center justify-between">
+          <h4 class="font-bold text-dark-1">Usuarios</h4>
+          <app-button (click)="openUserModal()" variant="color">
+            <div class="px-4">
+              <i class="fa-solid fa-plus"></i>
+              <span class="pl-1 hidden sm:inline">Crear usuario</span>
+            </div>
+          </app-button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm mb-8">
+          <app-table
+            [columns]="empColumns"
+            [data]="orgUsers"
+            (actionClick)="handleEmployeeAction($event)"
+          >
+          </app-table>
+        </div>
+
+        <div class="mt-auto pt-4 border-t mx-auto border-light-2">
+          <div class="flex flex-col xl:flex-row gap-3">
+            <app-button (click)="openOrgModal(org)" variant="light">
+              <div class="px-4">Modificar</div>
+            </app-button>
+            <app-button (click)="openConfirmModal()" variant="color">
+              <div class="px-4">Desactivar</div>
+            </app-button>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>
+
+<app-modal
+  [isOpen]="isOrgModalOpen()"
+  [title]="editingOrg() ? 'Editar Organización' : 'Nueva Organización'"
+  (close)="closeOrgModal()"
+>
+  <form [formGroup]="orgForm" (ngSubmit)="saveOrg()" class="flex flex-col gap-6">
+    <section>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <app-input [control]="name" type="text" label="Nombre" />
+        </div>
+        <div class="flex flex-col gap-1.5 md:col-span-2">
+          <app-input [control]="email" type="email" label="Email" />
+        </div>
+        @if (editingOrg()) {
+          <div class="flex flex-col gap-1.5 md:col-span-2">
+            <app-input [control]="phone" type="text" label="Teléfono" />
+          </div>
+          <div class="flex flex-col gap-1.5 md:col-span-2">
+            <app-input [control]="phone2" type="text" label="Celular" />
+          </div>
+          <div class="flex flex-col gap-1.5 md:col-span-2">
+            <app-input [control]="website" type="text" label="Página Web" />
+          </div>
+        }
+      </div>
+    </section>
+    @if (editingOrg()) {
+      <div class="h-px w-full bg-gray-200"></div>
+
+      <section>
+        <h4 class="heading-6 text-dark-1 mb-4">Ubicación</h4>
+        <div class="grid grid-cols-1 gap-4">
+          <div class="flex flex-col gap-1.5">
+            <div class="flex flex-col gap-1.5">
+              <app-input [control]="address" type="text" label="Dirección" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <app-input [control]="city" type="text" label="Ciudad" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <app-input [control]="state" type="text" label="Estado" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <app-input [control]="postCode" type="text" label="Código Postal" />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <app-input [control]="country" type="text" label="País" />
+            </div>
+          </div>
+        </div>
+      </section>
+    }
+
+    <div class="flex justify-end mx-auto gap-3 mt-4 pt-4 border-t border-gray-100">
+      <app-button type="button" variant="light" (click)="closeOrgModal()">
+        <div class="px-4">Cancelar</div>
+      </app-button>
+      <app-button type="submit" variant="success" [disabled]="orgForm.invalid">
+        <div class="px-4">Guardar Organización</div>
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+
+<app-modal
+  [isOpen]="isUserModalOpen()"
+  title="Nuevo empleado"
+  size="sm"
+  (close)="isUserModalOpen.set(false)"
+>
+  <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="flex flex-col gap-4">
+    <p class="text-sm text-dark-2 mb-2">
+      Registrar un nuevo usuario para la organización <strong>{{ selectedOrg()?.name }}</strong
+      >.
+    </p>
+
+    <div class="flex flex-col gap-1.5">
+      <app-input [control]="userName" label="Nombre completo" />
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <app-input [control]="userEmail" label="Email" />
+    </div>
+    <div class="flex flex-col gap-1.5">
+      <app-input [control]="userPassword" label="Contraseña" type="password" />
+    </div>
+
+    <div class="flex justify-end gap-3 mt-6">
+      <app-button type="button" variant="light" (click)="isUserModalOpen.set(false)">
+        <div class="px-4">Cancelar</div>
+      </app-button>
+      <app-button type="submit" variant="success" [disabled]="userForm.invalid">
+        <div class="px-4">Crear Empleado</div>
+      </app-button>
+    </div>
+  </form>
+</app-modal>
+<app-modal
+  [isOpen]="isConfirmModalOpen()"
+  title="Desactivar organización"
+  size="sm"
+  (close)="isConfirmModalOpen.set(false)"
+>
+  <div class="flex flex-col gap-6 text-center">
+    <div class="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-error-subtle">
+      <i class="fa-solid fa-triangle-exclamation text-2xl text-error-darker"></i>
+    </div>
+    <div>
+      <p class="text-dark-1 label-normal">
+        ¿Está seguro de que desea desactivar la organización
+        <strong>{{ selectedOrg()?.name }}</strong
+        >?
+      </p>
+    </div>
+    <div class="flex justify-center gap-3 w-full">
+      <app-button type="button" variant="light" (click)="isConfirmModalOpen.set(false)">
+        Cancelar
+      </app-button>
+      <app-button type="button" variant="color" (click)="toggleOrgStatus()">
+        <div class="px-4">Sí, desactivar</div>
+      </app-button>
+    </div>
+  </div>
+</app-modal>

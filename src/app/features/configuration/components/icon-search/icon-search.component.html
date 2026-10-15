@@ -1,0 +1,23 @@
+<div class="w-full max-w-sm relative">
+  <app-input
+    type="text"
+    [control]="searchControl"
+    placeholder="Buscar ícono (ej. user, home, trash)..."
+    (click)="openDropdown()"
+  ></app-input>
+
+  <div
+    *ngIf="filteredIcons.length > 0"
+    class="absolute bottom-full left-0 mb-2 w-full bg-white border border-gray-100 shadow-lg rounded-xl max-h-40 overflow-y-auto z-50 p-2 grid grid-cols-4 gap-2"
+  >
+    <button
+      *ngFor="let icon of filteredIcons | slice: 0 : 40"
+      (click)="selectIcon(icon)"
+      class="flex flex-col items-center justify-center p-3 rounded-lg hover:bg-brand-primary hover:text-white transition-colors text-gray-600"
+      title="{{ icon.name }}"
+    >
+      <i class="{{ icon.style }} fa-{{ icon.name }} text-xl mb-1"></i>
+      <span class="text-[10px] truncate w-full text-center">{{ icon.name }}</span>
+    </button>
+  </div>
+</div>

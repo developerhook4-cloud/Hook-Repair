@@ -1,0 +1,18 @@
+<button
+  [type]="type"
+  [disabled]="disabled"
+  [ngClass]="{
+    'bg-dark-1 hover:bg-dark-1': variant === 'dark',
+    'bg-light-1 hover:bg-dark-4 ': variant === 'light',
+    'bg-brand-primary hover:bg-brand-darker ': variant === 'color',
+    'bg-success-primary hover:bg-success-darker ': variant === 'success',
+
+    'text-dark-1': variant === 'light',
+    'text-light-4': variant !== 'light',
+    'rounded-lg': shape === 'normal',
+    'rounded-full': shape === 'rounded',
+  }"
+  class="w-full label-large py-3.5 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-small px-4"
+>
+  <ng-content></ng-content>
+</button>

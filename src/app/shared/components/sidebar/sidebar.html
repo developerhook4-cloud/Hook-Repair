@@ -1,0 +1,45 @@
+<div [ngClass]="isCollapsed ? 'w-[90px] p-4' : 'w-[260px] p-6'"
+  class="bg-white rounded-[24px] h-full shadow-sm flex flex-col gap-6 transition-all duration-300 ease-in-out relative overflow-hidden">
+
+  <div class="flex items-center" [ngClass]="isCollapsed ? 'justify-center mt-2' : 'justify-between px-2'">
+    <div *ngIf="!isCollapsed" class="flex items-center gap-3 text-brand-primary font-bold text-xl whitespace-nowrap">
+      <fa-icon *ngIf="titleIcon" [icon]="titleIcon"></fa-icon>
+      <span>{{ title }}</span>
+    </div>
+    <button (click)="toggleSidebar()"
+      class="text-gray-400 hover:text-dark-1 transition-colors flex items-center justify-center p-2 rounded-lg hover:bg-gray-100">
+      <fa-icon [icon]="isCollapsed ? faChevronRight : faChevronLeft" class="text-sm"></fa-icon>
+    </button>
+  </div>
+
+  <ul class="flex flex-col gap-2 w-full text-base font-semibold">
+    <li *ngFor="let item of items" [ngClass]="{
+          'bg-brand-primary text-white shadow-md': item.isActive, 
+          'text-dark-1 hover:bg-gray-50': !item.isActive
+        }" class="rounded-[16px] overflow-hidden flex flex-col transition-colors">
+
+      <div (click)="toggleDropdown(item)" class="flex items-center cursor-pointer transition-all duration-300 py-4"
+        [ngClass]="isCollapsed ? 'justify-center px-0' : 'px-5 justify-between'">
+        <span class="flex items-center gap-4 whitespace-nowrap">
+          <fa-icon *ngIf="item.icon" [icon]="item.icon" class="text-lg text-center"
+            [ngClass]="{'w-5': !isCollapsed}"></fa-icon>
+          <span *ngIf="!isCollapsed">{{ item.label }}</span>
+        </span>
+        <fa-icon *ngIf="item.subItems && !isCollapsed" [icon]="item.isExpanded ? faChevronUp : faChevronDown"
+          class="text-sm transition-transform duration-200">
+        </fa-icon>
+      </div>
+
+      <ul *ngIf="item.subItems && item.isExpanded && !isCollapsed"
+        class="flex flex-col font-medium text-[15px] pb-3 whitespace-nowrap">
+        <li *ngFor="let sub of item.subItems" (click)="selectSubItem($event, item, sub)" [ngClass]="{
+              'bg-brand-lighter': sub.isActive, 
+              'hover:bg-brand-lighter': !sub.isActive
+            }" class="mx-3 px-10 py-2 mb-1 rounded-lg transition-colors cursor-pointer">
+          {{ sub.label }}
+        </li>
+
+      </ul>
+    </li>
+  </ul>
+</div>

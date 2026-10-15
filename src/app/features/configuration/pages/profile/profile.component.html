@@ -1,0 +1,82 @@
+<div
+  class="flex-1 flex-col flex min-h-0 bg-white rounded-2xl p-6 md:p-10 shadow-sm overflow-y-auto"
+>
+  <form
+    [formGroup]="profileForm"
+    (ngSubmit)="onSubmit()"
+    class="flex flex-col gap-6 w-full max-w-5xl mx-auto relative h-full"
+  >
+    <div [ngClass]="isSidebarCollapsed ? 'flex flex-col gap-8 md:gap-12' : 'flex flex-col gap-6'">
+      <section class="flex-1">
+        <h2 class="heading-5 font-bold text-dark-1 mb-6">Configurar perfil</h2>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+          <app-input
+            label="Nombre"
+            [isRequired]="true"
+            placeholder="Nombre"
+            [control]="getControl('name')"
+          ></app-input>
+          <app-input
+            label="Email"
+            [isRequired]="true"
+            type="email"
+            placeholder="ejemplo@ejemplo.com"
+            [control]="getControl('email')"
+          ></app-input>
+        </div>
+      </section>
+
+      <section class="flex-1">
+        <div
+          (click)="isPasswordOpen.set(!isPasswordOpen())"
+          class="flex label-normal items-center justify-between min-w-60 cursor-pointer py-1.5 px-2.5 rounded-md align-middle transition-all duration-300 ease-in text-dark-1 bg-light-3 p-2 hover:bg-light-1 focus:bg-light-1"
+        >
+          Cambiar contraseña
+          <span
+            data-icon
+            [class.rotate-180]="isPasswordOpen()"
+            class="grid place-items-center shrink-0"
+          >
+            <i class="fa-solid fa-chevron-down"></i>
+          </span>
+        </div>
+        <div
+          class="overflow-hidden transition-[max-height] duration-300 ease-in-out max-h-0"
+          [ngClass]="isPasswordOpen() ? 'max-h-125 mt-4 opacity-100' : 'max-h-0 opacity-0'"
+        >
+          <div class="pb-6">
+            <app-input
+              label="Contraseña anterior"
+              [isPassword]="true"
+              placeholder="Ingrese su contraseña"
+              [control]="getControl('oldPassword')"
+            ></app-input>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <app-input
+              label="Nueva contraseña"
+              [isPassword]="true"
+              placeholder="Ingrese la nueva contraseña"
+              [control]="getControl('newPassword')"
+            ></app-input>
+            <app-input
+              label="Repetir nueva contraseña"
+              [isPassword]="true"
+              placeholder="Ingrese la nueva contraseña"
+              [control]="getControl('repeatNewPassword')"
+            ></app-input>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="flex justify-center mt-auto pt-8 pb-8">
+      <div class="w-48">
+        <app-button type="submit" [disabled]="profileForm.invalid" variant="color" shape="rounded">
+          Guardar cambios
+        </app-button>
+      </div>
+    </div>
+  </form>
+</div>

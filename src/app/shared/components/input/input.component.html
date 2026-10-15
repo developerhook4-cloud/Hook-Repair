@@ -1,0 +1,30 @@
+<div class="flex flex-col gap-2 w-full">
+  <label class="label-normal text-dark-1">{{ label }} 
+    <span *ngIf="isRequired" class="text-red-500">*</span> 
+  </label>
+  
+  <div class="relative w-full">
+    <input 
+      [type]="currentType" 
+      [formControl]="control" 
+      [placeholder]="placeholder"
+      class="w-full bg-white border border-light-2 rounded-lg p-3 body-normal text-dark-1 outline-none focus:border-brand-primary transition-colors placeholder:text-dark-4"
+      [ngClass]="{'pr-12 tracking-widest': isPassword}">
+
+    <button 
+      *ngIf="isPassword"
+      type="button" 
+      (click)="togglePassword()" 
+      class="absolute right-4 top-1/2 -translate-y-1/2 text-dark-3 hover:text-dark-1 transition-colors flex items-center justify-center">
+      
+      <fa-icon *ngIf="!showPassword" [icon]="faEyeSlash" class="text-lg"></fa-icon>
+      <fa-icon *ngIf="showPassword" [icon]="faEye" class="text-lg"></fa-icon>
+    </button>
+  </div>
+
+  <div *ngIf="control.invalid && control.touched" class="flex flex-col mt-1">
+    <small *ngIf="control.hasError('required')" class="label-small text-error-primary">Este campo es obligatorio.</small>
+    <small *ngIf="control.hasError('email')" class="label-small text-error-primary">El formato debe ser válido.</small>
+    <small *ngIf="control.hasError('pattern')" class="label-small text-error-primary">El formato ingresado no es válido.</small>
+  </div>
+</div>

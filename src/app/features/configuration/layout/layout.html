@@ -1,0 +1,18 @@
+<app-navbar></app-navbar>
+
+<div
+  class="h-screen bg-light-4 p-4 md:p-6 pt-20 md:pt-24 flex flex-col md:flex-row gap-6 overflow-hidden"
+>
+  <app-sidebar
+    title="Configuración"
+    [titleIcon]="faGear"
+    [items]="menuConfiguracion"
+    (collapsedChange)="onSidebarToggle($event)"
+    class="block h-full"
+  >
+  </app-sidebar>
+
+  <main class="flex-1 min-w-0 flex flex-col">
+    <router-outlet></router-outlet>
+  </main>
+</div>

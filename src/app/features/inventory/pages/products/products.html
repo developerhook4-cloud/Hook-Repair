@@ -1,0 +1,1165 @@
+<div
+  class="flex-1 min-h-0 flex flex-col bg-white rounded-2xl p-6 md:p-10 shadow-sm overflow-y-auto relative scroll-smooth"
+>
+  <div
+    *ngIf="showSuccessToast"
+    class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-brand-primary text-white px-8 py-3 rounded-full shadow-2xl flex items-center justify-center gap-3 z-100 transition-opacity duration-300"
+  >
+    <span class="label-normal font-bold">Cambios guardados</span>
+  </div>
+
+  <div class="w-full flex flex-col flex-1">
+    <h2 class="heading-5 mb-8 text-dark-1">Gestionar productos</h2>
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div class="relative w-full md:w-95">
+        <fa-icon
+          [icon]="faSearch"
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+        ></fa-icon>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="currentPage = 1"
+          placeholder="Buscar por ID, nombre, UPC..."
+          class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-400 shadow-sm"
+        />
+      </div>
+
+      <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto">
+        <button
+          (click)="openFilterModal()"
+          class="px-5 py-2.5 bg-gray-50 border border-gray-200 rounded-[14px] text-dark-2 body-normal font-semibold flex items-center gap-2 hover:bg-gray-100 transition-colors whitespace-nowrap"
+        >
+          <fa-icon [icon]="faSliders" class="text-xs"></fa-icon> Filtros
+        </button>
+        <button
+          class="px-5 py-2.5 bg-gray-50 border border-gray-200 rounded-[14px] text-dark-2 body-normal font-semibold flex items-center gap-2 hover:bg-gray-100 transition-colors whitespace-nowrap"
+        >
+          Importar/Exportar <fa-icon [icon]="faChevronDown" class="text-xs"></fa-icon>
+        </button>
+        <button
+          (click)="openCreateModal()"
+          class="w-full sm:w-auto bg-brand-primary text-white px-6 py-2.5 rounded-[14px] label-normal font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm whitespace-nowrap"
+        >
+          <fa-icon [icon]="faPlus" class="text-xs"></fa-icon> Crear producto
+        </button>
+      </div>
+    </div>
+
+    <div class="w-full border border-gray-100 rounded-[20px] overflow-x-auto shadow-sm mb-6">
+      <table class="w-full text-left border-collapse table-fixed" [style.minWidth.px]="tableWidth">
+        <thead class="bg-gray-100 text-dark-2 label-normal border-b border-gray-200">
+          <tr>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[0]"
+              [style.minWidth.px]="columnWidths[0]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('id')"
+              >
+                ID
+                <fa-icon
+                  *ngIf="sortColumn === 'id'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 0)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[1]"
+              [style.minWidth.px]="columnWidths[1]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('upc')"
+              >
+                UPC
+                <fa-icon
+                  *ngIf="sortColumn === 'upc'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 1)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[2]"
+              [style.minWidth.px]="columnWidths[2]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('category')"
+              >
+                Categoría
+                <fa-icon
+                  *ngIf="sortColumn === 'category'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 2)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[3]"
+              [style.minWidth.px]="columnWidths[3]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('brand')"
+              >
+                Marca
+                <fa-icon
+                  *ngIf="sortColumn === 'brand'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 3)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[4]"
+              [style.minWidth.px]="columnWidths[4]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('models')"
+              >
+                Modelo
+                <fa-icon
+                  *ngIf="sortColumn === 'models'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 4)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[5]"
+              [style.minWidth.px]="columnWidths[5]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('name')"
+              >
+                Nombre
+                <fa-icon
+                  *ngIf="sortColumn === 'name'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 5)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[6]"
+              [style.minWidth.px]="columnWidths[6]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary"
+                (click)="sortBy('status')"
+              >
+                Estado
+                <fa-icon
+                  *ngIf="sortColumn === 'status'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 6)"
+              ></div>
+            </th>
+            <th
+              class="relative py-4 px-6 text-center select-none group"
+              [style.width.px]="columnWidths[7]"
+              [style.minWidth.px]="columnWidths[7]"
+            >
+              <div
+                class="flex items-center justify-center gap-2 cursor-pointer hover:text-brand-primary whitespace-nowrap"
+                (click)="sortBy('stock')"
+              >
+                En stock
+                <fa-icon
+                  *ngIf="sortColumn === 'stock'"
+                  [icon]="sortDirection === 'asc' ? faArrowUp : faArrowDown"
+                  class="text-brand-primary text-xs"
+                ></fa-icon>
+              </div>
+              <div
+                class="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-gray-400 opacity-0 group-hover:opacity-100 transition-opacity z-10"
+                (mousedown)="onMouseDown($event, 7)"
+              ></div>
+            </th>
+            <th
+              class="py-4 px-6 text-center"
+              [style.width.px]="columnWidths[8]"
+              [style.minWidth.px]="columnWidths[8]"
+            >
+              Acciones
+            </th>
+          </tr>
+        </thead>
+        <tbody class="body-normal text-dark-1">
+          <tr
+            *ngFor="let product of paginatedProducts; let last = last"
+            class="hover:bg-gray-50 transition-colors"
+            [ngClass]="{ 'border-b border-gray-100': !last }"
+          >
+            <td
+              class="py-4 px-6 text-center truncate"
+              [style.width.px]="columnWidths[0]"
+              [style.minWidth.px]="columnWidths[0]"
+            >
+              {{ product.id }}
+            </td>
+            <td
+              class="py-4 px-6 text-center truncate"
+              [style.width.px]="columnWidths[1]"
+              [style.minWidth.px]="columnWidths[1]"
+            >
+              {{ product.upc }}
+            </td>
+            <td
+              class="py-4 px-6 text-center truncate"
+              [style.width.px]="columnWidths[2]"
+              [style.minWidth.px]="columnWidths[2]"
+            >
+              {{ product.categoryName }}
+            </td>
+            <td
+              class="py-4 px-6 text-center truncate"
+              [style.width.px]="columnWidths[3]"
+              [style.minWidth.px]="columnWidths[3]"
+            >
+              {{ product.brandName }}
+            </td>
+            <td
+              class="py-4 px-6 text-center truncate"
+              [style.width.px]="columnWidths[4]"
+              [style.minWidth.px]="columnWidths[4]"
+            >
+              {{ product.modelName }}
+            </td>
+            <td
+              class="py-4 px-6 text-center truncate"
+              [style.width.px]="columnWidths[5]"
+              [style.minWidth.px]="columnWidths[5]"
+              [title]="product.name"
+            >
+              {{ product.name }}
+            </td>
+            <td
+              class="py-4 px-6 text-center whitespace-nowrap"
+              [style.width.px]="columnWidths[6]"
+              [style.minWidth.px]="columnWidths[6]"
+            >
+              <span
+                class="px-4 py-1.5 rounded-full label-small inline-block font-bold whitespace-nowrap"
+                [ngClass]="{
+                  'bg-success-subtle text-success-darker': product.status === 'En stock',
+                  'bg-error-subtle text-error-primary': product.status === 'Agotado',
+                  'bg-warning-subtle text-warning-darker': product.status === 'Bajo stock',
+                }"
+              >
+                {{ product.status }}
+              </span>
+            </td>
+            <td
+              class="py-4 px-6 text-center font-bold text-dark-2 whitespace-nowrap"
+              [style.width.px]="columnWidths[7]"
+              [style.minWidth.px]="columnWidths[7]"
+            >
+              {{ product.inStock }}
+            </td>
+            <td
+              class="py-4 px-6 text-center"
+              [style.width.px]="columnWidths[8]"
+              [style.minWidth.px]="columnWidths[8]"
+            >
+              <div class="flex items-center justify-center gap-4 text-gray-400">
+                <button
+                  (click)="openEditModal(product)"
+                  class="hover:text-brand-primary transition-colors"
+                  title="Editar"
+                >
+                  <fa-icon [icon]="faPen"></fa-icon>
+                </button>
+                <button
+                  (click)="openDeleteModal(product)"
+                  class="hover:text-brand-primary transition-colors"
+                  title="Eliminar"
+                >
+                  <fa-icon [icon]="faTrashCan"></fa-icon>
+                </button>
+                <button
+                  (click)="openDetailsModal(product)"
+                  class="hover:text-brand-primary transition-colors"
+                  title="Ver detalles"
+                >
+                  <fa-icon [icon]="faEllipsis"></fa-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+          <tr *ngIf="paginatedProducts.length === 0">
+            <td colspan="9" class="py-12 text-center text-gray-400 body-normal">
+              No se encontraron productos.
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div
+      class="mt-auto relative flex justify-center items-center w-full body-normal font-semibold text-dark-2"
+    >
+      <div
+        class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+      >
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="text-gray-400 hover:text-dark-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <fa-icon [icon]="faChevronLeft"></fa-icon>
+        </button>
+        <div class="flex items-center gap-3">
+          <button
+            *ngFor="let page of pagesArray"
+            (click)="goToPage(page)"
+            class="w-6 h-6 flex items-center justify-center rounded-full transition-colors label-normal"
+            [ngClass]="
+              currentPage === page ? 'bg-brand-primary text-white' : 'hover:text-brand-primary'
+            "
+          >
+            {{ page }}
+          </button>
+        </div>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="text-dark-1 hover:text-brand-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <fa-icon [icon]="faChevronRight"></fa-icon>
+        </button>
+      </div>
+      <div class="hidden md:flex items-center gap-3 absolute right-0">
+        <span>Ir a pág.</span>
+        <input
+          type="number"
+          [(ngModel)]="pageInput"
+          (change)="goToPage(pageInput)"
+          min="1"
+          [max]="totalPages"
+          class="bg-gray-100 rounded-lg w-9 h-9 text-center p-0 text-gray-600 focus:outline-none focus:ring-1 focus:ring-brand-primary"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4 md:p-6 transition-all duration-300"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-5xl flex flex-col max-h-[90vh] border border-gray-100 overflow-hidden"
+  >
+    <div class="p-6 md:px-8 border-b border-gray-100 flex justify-between items-center shrink-0">
+      <h2 class="heading-5 text-dark-1">
+        {{ modalMode === 'create' ? 'Crear producto' : 'Editar producto' }}
+      </h2>
+      <button (click)="closeModal()" class="text-gray-400 hover:text-dark-1 transition-colors">
+        <fa-icon [icon]="faXmark" class="text-xl"></fa-icon>
+      </button>
+    </div>
+
+    <div class="p-6 md:p-8 overflow-y-auto flex-1 bg-white">
+      <div class="flex flex-col md:flex-row gap-10">
+        <div class="flex-1 flex flex-col gap-5">
+          <h3 class="label-normal font-bold text-dark-1">Información General</h3>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="label-normal font-semibold text-dark-1"
+              >Nombre del producto <span class="text-brand-primary">*</span></label
+            >
+            <input
+              type="text"
+              [ngModel]="currentProduct.name"
+              (ngModelChange)="currentProduct ? (currentProduct.name = $event) : null"
+              placeholder="Ej. Pantalla OLED iPhone 13"
+              class="w-full border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-300"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1"
+                >Categoría <span class="text-brand-primary">*</span></label
+              >
+              <div class="relative w-full dropdown-category">
+                <button
+                  (click)="isCategoryDropdownOpen = !isCategoryDropdownOpen"
+                  type="button"
+                  class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal text-dark-1 flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+                >
+                  <span class="truncate">{{ currentProduct.categoryName || 'Seleccionar' }}</span>
+                  <fa-icon
+                    [icon]="faChevronDown"
+                    class="text-sm text-gray-400 transition-transform duration-200"
+                    [ngClass]="{ 'rotate-180': isCategoryDropdownOpen }"
+                  ></fa-icon>
+                </button>
+                <div
+                  *ngIf="isCategoryDropdownOpen"
+                  class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-60 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+                >
+                  <ul class="flex flex-col text-sm font-semibold">
+                    <li
+                      *ngFor="let cat of categories"
+                      (click)="
+                        currentProduct ? (currentProduct.categoryName = cat.name) : null;
+                        currentProduct.categoryId = cat.id;
+                        isCategoryDropdownOpen = false
+                      "
+                      class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                      [ngClass]="
+                        currentProduct.categoryName === cat.name
+                          ? 'text-brand-primary bg-red-50'
+                          : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                      "
+                    >
+                      {{ cat.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1"
+                >Marca <span class="text-brand-primary">*</span></label
+              >
+              <div class="relative w-full dropdown-brand">
+                <button
+                  (click)="isBrandDropdownOpen = !isBrandDropdownOpen"
+                  type="button"
+                  class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal text-dark-1 flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+                >
+                  <span class="truncate">{{ currentProduct.brandName || 'Seleccionar' }}</span>
+                  <fa-icon
+                    [icon]="faChevronDown"
+                    class="text-sm text-gray-400 transition-transform duration-200"
+                    [ngClass]="{ 'rotate-180': isBrandDropdownOpen }"
+                  ></fa-icon>
+                </button>
+                <div
+                  *ngIf="isBrandDropdownOpen"
+                  class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-60 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+                >
+                  <ul class="flex flex-col text-sm font-semibold">
+                    <li
+                      *ngFor="let brand of brands"
+                      (click)="
+                        currentProduct.brandName = brand.name;
+                        currentProduct.brandId = brand.id;
+                        isBrandDropdownOpen = false
+                      "
+                      class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                      [ngClass]="
+                        currentProduct.brandName === brand.name
+                          ? 'text-brand-primary bg-red-50'
+                          : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                      "
+                    >
+                      {{ brand.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">Dispositivo asociado</label>
+              <div class="relative w-full dropdown-device">
+                <button
+                  (click)="isDeviceDropdownOpen = !isDeviceDropdownOpen"
+                  type="button"
+                  class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal text-dark-1 flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+                >
+                  <span class="truncate">{{ currentProduct.modelName || 'Seleccionar' }}</span>
+                  <fa-icon
+                    [icon]="faChevronDown"
+                    class="text-sm text-gray-400 transition-transform duration-200"
+                    [ngClass]="{ 'rotate-180': isDeviceDropdownOpen }"
+                  ></fa-icon>
+                </button>
+                <div
+                  *ngIf="isDeviceDropdownOpen"
+                  class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-60 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+                >
+                  <ul class="flex flex-col text-sm font-semibold">
+                    <li
+                      *ngFor="let dev of models"
+                      (click)="
+                        currentProduct.modelId = dev.id;
+                        currentProduct.modelName = dev.name;
+                        isDeviceDropdownOpen = false
+                      "
+                      class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                      [ngClass]="
+                        currentProduct.modelName === dev.name
+                          ? 'text-brand-primary bg-red-50'
+                          : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                      "
+                    >
+                      {{ dev.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">Condición</label>
+              <div class="relative w-full dropdown-condition">
+                <button
+                  (click)="isConditionDropdownOpen = !isConditionDropdownOpen"
+                  type="button"
+                  class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal text-dark-1 flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+                >
+                  <span class="truncate">{{ currentProduct.condition || 'Seleccionar' }}</span>
+                  <fa-icon
+                    [icon]="faChevronDown"
+                    class="text-sm text-gray-400 transition-transform duration-200"
+                    [ngClass]="{ 'rotate-180': isConditionDropdownOpen }"
+                  ></fa-icon>
+                </button>
+                <div
+                  *ngIf="isConditionDropdownOpen"
+                  class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-60 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+                >
+                  <ul class="flex flex-col text-sm font-semibold">
+                    <li
+                      *ngFor="let cond of conditions"
+                      (click)="currentProduct!.condition = cond; isConditionDropdownOpen = false"
+                      class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                      [ngClass]="
+                        currentProduct!.condition === cond
+                          ? 'text-brand-primary bg-red-50'
+                          : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                      "
+                    >
+                      {{ cond }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-1.5">
+            <label class="label-normal font-semibold text-dark-1">Modelos compatibles</label>
+            <input
+              type="text"
+              [(ngModel)]="currentProduct!.modelNames"
+              placeholder="Ej. A2633, A2634"
+              class="w-full border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-300"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">Proveedor</label>
+              <div class="relative w-full dropdown-supplier">
+                <button
+                  (click)="isSupplierDropdownOpen = !isSupplierDropdownOpen"
+                  type="button"
+                  class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal text-dark-1 flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+                >
+                  <span class="truncate">{{ currentProduct.supplierName || 'Seleccionar' }}</span>
+                  <fa-icon
+                    [icon]="faChevronDown"
+                    class="text-sm text-gray-400 transition-transform duration-200"
+                    [ngClass]="{ 'rotate-180': isSupplierDropdownOpen }"
+                  ></fa-icon>
+                </button>
+                <div
+                  *ngIf="isSupplierDropdownOpen"
+                  class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-60 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+                >
+                  <ul class="flex flex-col text-sm font-semibold">
+                    <li
+                      *ngFor="let sup of suppliers"
+                      (click)="
+                        currentProduct!.supplierName = sup.name;
+                        currentProduct!.supplierId = sup.id;
+                        isSupplierDropdownOpen = false
+                      "
+                      class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                      [ngClass]="
+                        currentProduct.supplierName === sup.name
+                          ? 'text-brand-primary bg-red-50'
+                          : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                      "
+                    >
+                      {{ sup.name }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <input
+                type="text"
+                [(ngModel)]="currentProduct!.upc"
+                placeholder="Ej. TEC-1-4509"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal text-dark-1 bg-gray-50"
+                readonly
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="flex-1 flex flex-col gap-5 border-t md:border-t-0 md:border-l border-gray-100 md:pl-10 pt-6 md:pt-0"
+        >
+          <h3 class="label-normal font-bold text-dark-1">Precios e Inventario</h3>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">Costo ($)</label>
+              <input
+                type="number"
+                [(ngModel)]="currentProduct!.price"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2 focus:outline-none focus:border-brand-primary body-normal text-dark-1"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">P. General ($)</label>
+              <input
+                type="number"
+                [(ngModel)]="currentProduct!.generalSalePrice"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2 focus:outline-none focus:border-brand-primary body-normal text-dark-1"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">P. Distrib. ($)</label>
+              <input
+                type="number"
+                [(ngModel)]="currentProduct!.distributorSalePrice"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2 focus:outline-none focus:border-brand-primary body-normal text-dark-1"
+              />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-3">
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">Stock Inicial</label>
+              <input
+                type="number"
+                [(ngModel)]="currentProduct!.inStock"
+                (change)="adjustSerialNumbersArray()"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2 focus:outline-none focus:border-brand-primary body-normal font-bold text-brand-primary bg-red-50"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">Warning Stock</label>
+              <input
+                type="number"
+                [(ngModel)]="currentProduct!.stockWarning"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2 focus:outline-none focus:border-brand-primary body-normal text-dark-1"
+              />
+            </div>
+            <div class="flex flex-col gap-1.5">
+              <label class="label-normal font-semibold text-dark-1">P. Reorden</label>
+              <input
+                type="number"
+                [(ngModel)]="currentProduct!.minimumReorderPoint"
+                class="w-full border border-gray-300 rounded-[14px] px-4 py-2 focus:outline-none focus:border-brand-primary body-normal text-dark-1"
+              />
+            </div>
+          </div>
+
+          <div class="flex flex-col gap-3 mt-2">
+            <label class="flex items-center gap-2 cursor-pointer label-normal text-dark-1">
+              <input
+                type="checkbox"
+                [(ngModel)]="currentProduct!.isSerialized"
+                (change)="adjustSerialNumbersArray()"
+                class="w-4 h-4 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary cursor-pointer"
+              />
+              Inventario Serializado (Requerir IMEI/Serie)
+            </label>
+
+            <div
+              *ngIf="currentProduct!.isSerialized && currentProduct!.inStock! > 0"
+              class="bg-gray-50 p-4 rounded-2xl border border-gray-200 mt-2 max-h-40 overflow-y-auto scroll-smooth"
+            >
+              <p class="body-small text-gray-500 mb-3 font-semibold">
+                Ingresa los {{ currentProduct!.inStock }} IMEI / Series para el stock actual:
+              </p>
+              <div class="grid grid-cols-2 gap-3">
+                <div
+                  *ngFor="let serial of currentProduct!.serialNumbers; let i = index"
+                  class="flex flex-col gap-1"
+                >
+                  <label class="label-small text-dark-2">Unidad {{ i + 1 }}</label>
+                  <input
+                    type="text"
+                    [(ngModel)]="currentProduct!.serialNumbers[i]"
+                    placeholder="IMEI o Serie"
+                    class="w-full border border-gray-300 rounded-lg px-3 py-1.5 body-normal focus:outline-none focus:border-brand-primary text-dark-1 bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 md:px-8 bg-gray-50 flex justify-end gap-3 border-t border-gray-100 shrink-0">
+      <button
+        (click)="closeModal()"
+        class="px-6 py-2.5 rounded-[14px] bg-gray-200 text-dark-2 label-normal font-bold hover:bg-gray-300 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="saveProduct()"
+        [disabled]="!isFormValid"
+        class="px-6 py-2.5 rounded-[14px] bg-brand-primary text-white label-normal font-bold hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        {{ modalMode === 'create' ? 'Crear producto' : 'Guardar cambios' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isFilterModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4 transition-all duration-300"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-162.5 flex flex-col border border-gray-100 overflow-visible"
+  >
+    <div
+      class="p-6 md:px-8 border-b border-gray-100 flex justify-between items-center shrink-0 rounded-t-2xl"
+    >
+      <h2 class="heading-5 text-dark-1">Filtros de inventario</h2>
+      <button
+        (click)="closeFilterModal()"
+        class="text-gray-400 hover:text-dark-1 transition-colors"
+      >
+        <fa-icon [icon]="faXmark" class="text-xl"></fa-icon>
+      </button>
+    </div>
+
+    <div class="p-6 md:px-8 py-6 bg-white space-y-5 rounded-b-2xl">
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal font-semibold text-dark-1">Nombre</label>
+          <input
+            type="text"
+            [(ngModel)]="tempFilters.name"
+            placeholder="Introducir nombre"
+            class="w-full border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-300"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal font-semibold text-dark-1">Categoría</label>
+          <div class="relative w-full dropdown-filter-category">
+            <button
+              (click)="isFilterCategoryDropdownOpen = !isFilterCategoryDropdownOpen"
+              type="button"
+              class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+              [ngClass]="tempFilters.category ? 'text-dark-1' : 'text-gray-400'"
+            >
+              <span class="truncate">{{ tempFilters.category || 'Seleccionar' }}</span>
+              <fa-icon
+                [icon]="faChevronDown"
+                class="text-sm transition-transform duration-200"
+                [ngClass]="{ 'rotate-180': isFilterCategoryDropdownOpen, 'text-gray-400': true }"
+              ></fa-icon>
+            </button>
+            <div
+              *ngIf="isFilterCategoryDropdownOpen"
+              class="absolute top-full mt-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-120 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+            >
+              <ul class="flex flex-col text-sm font-semibold">
+                <li
+                  (click)="tempFilters.category = ''; isFilterCategoryDropdownOpen = false"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors text-dark-2 hover:bg-red-50 hover:text-brand-primary"
+                >
+                  Todas
+                </li>
+                <li
+                  *ngFor="let cat of categories"
+                  (click)="tempFilters.category = cat.name; isFilterCategoryDropdownOpen = false"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                  [ngClass]="
+                    tempFilters.category === cat.name
+                      ? 'text-brand-primary bg-red-50'
+                      : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                  "
+                >
+                  {{ cat.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal font-semibold text-dark-1">Marca</label>
+          <div class="relative w-full dropdown-filter-brand">
+            <button
+              (click)="isFilterBrandDropdownOpen = !isFilterBrandDropdownOpen"
+              type="button"
+              class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+              [ngClass]="tempFilters.brand ? 'text-dark-1' : 'text-gray-400'"
+            >
+              <span class="truncate">{{ tempFilters.brand || 'Seleccionar marca' }}</span>
+              <fa-icon
+                [icon]="faChevronDown"
+                class="text-sm transition-transform duration-200"
+                [ngClass]="{ 'rotate-180': isFilterBrandDropdownOpen, 'text-gray-400': true }"
+              ></fa-icon>
+            </button>
+            <div
+              *ngIf="isFilterBrandDropdownOpen"
+              class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-120 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+            >
+              <ul class="flex flex-col text-sm font-semibold">
+                <li
+                  (click)="tempFilters.brand = ''; isFilterBrandDropdownOpen = false"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors text-dark-2 hover:bg-red-50 hover:text-brand-primary"
+                >
+                  Todas
+                </li>
+                <li
+                  *ngFor="let brand of brands"
+                  (click)="tempFilters.brand = brand.name; isFilterBrandDropdownOpen = false"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                  [ngClass]="
+                    tempFilters.brand === brand.name
+                      ? 'text-brand-primary bg-red-50'
+                      : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                  "
+                >
+                  {{ brand.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal font-semibold text-dark-1">Modelo</label>
+          <input
+            type="text"
+            [(ngModel)]="tempFilters.model"
+            placeholder="Seleccionar modelo"
+            class="w-full border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-300"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal font-semibold text-dark-1">Distribuidor</label>
+          <div class="relative w-full dropdown-filter-supplier">
+            <button
+              (click)="isFilterSupplierDropdownOpen = !isFilterSupplierDropdownOpen"
+              type="button"
+              class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+              [ngClass]="tempFilters.supplier ? 'text-dark-1' : 'text-gray-400'"
+            >
+              <span class="truncate">{{ tempFilters.supplier || 'Seleccionar distribuidor' }}</span>
+              <fa-icon
+                [icon]="faChevronDown"
+                class="text-sm transition-transform duration-200"
+                [ngClass]="{ 'rotate-180': isFilterSupplierDropdownOpen, 'text-gray-400': true }"
+              ></fa-icon>
+            </button>
+            <div
+              *ngIf="isFilterSupplierDropdownOpen"
+              class="absolute bottom-full mb-1 left-0 w-full bg-white rounded-[14px] shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-120 p-1.5 max-h-48 overflow-y-auto scroll-smooth"
+            >
+              <ul class="flex flex-col text-sm font-semibold">
+                <li
+                  (click)="tempFilters.supplier = ''; isFilterSupplierDropdownOpen = false"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors text-dark-2 hover:bg-red-50 hover:text-brand-primary"
+                >
+                  Todos
+                </li>
+                <li
+                  *ngFor="let sup of suppliers"
+                  (click)="tempFilters.supplier = sup.name; isFilterSupplierDropdownOpen = false"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                  [ngClass]="
+                    tempFilters.supplier === sup.name
+                      ? 'text-brand-primary bg-red-50'
+                      : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                  "
+                >
+                  {{ sup.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center justify-between mt-4">
+        <button
+          (click)="clearFilters()"
+          class="text-brand-primary font-bold label-normal hover:underline transition-colors"
+        >
+          Limpiar
+        </button>
+        <button
+          (click)="applyFilters()"
+          class="w-45 py-3 rounded-[14px] bg-brand-primary text-white label-large font-bold hover:opacity-90 transition-opacity shadow-sm"
+        >
+          Aplicar filtros
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isDetailsModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4 animate-fade-in"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl flex flex-col max-h-[85vh] overflow-hidden border border-gray-100"
+  >
+    <div
+      class="p-6 md:px-8 md:pt-8 pb-4 flex justify-between items-center border-b border-gray-100 shrink-0"
+    >
+      <div class="flex items-center gap-3">
+        <h2 class="heading-5 text-dark-1">Detalles del producto</h2>
+        <span
+          class="px-3 py-1 rounded-full label-small font-bold whitespace-nowrap"
+          [ngClass]="{
+            'bg-success-subtle text-success-darker': productToView?.status === 'En stock',
+            'bg-error-subtle text-error-primary': productToView?.status === 'Agotado',
+            'bg-warning-subtle text-warning-darker': productToView?.status === 'Bajo stock',
+          }"
+        >
+          {{ productToView?.status }}
+        </span>
+      </div>
+      <button
+        (click)="closeDetailsModal()"
+        class="text-gray-400 hover:text-dark-1 transition-colors"
+      >
+        <fa-icon [icon]="faXmark" class="text-xl"></fa-icon>
+      </button>
+    </div>
+
+    <div class="p-6 md:p-8 overflow-y-auto flex-1 space-y-6">
+      <div>
+        <h3 class="label-normal font-bold text-dark-1 mb-3">Información Principal</h3>
+        <div
+          class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100"
+        >
+          <div>
+            <span class="label-small text-gray-500 block">ID</span>
+            <span class="body-normal font-semibold text-dark-1">{{ productToView?.id }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">UPC</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.upc || 'N/A'
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Nombre</span>
+            <span class="body-normal font-semibold text-dark-1">{{ productToView?.name }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Categoría</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.categoryName
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Marca</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.brandName
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Modelos</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.modelNames || 'N/A'
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Proveedor</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.supplierName || 'N/A'
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Condición</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.condition || 'N/A'
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Dispositivo Asociado</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.modelName || 'N/A'
+            }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h3 class="label-normal font-bold text-dark-1 mb-3">Inventario y Precios</h3>
+        <div
+          class="grid grid-cols-2 md:grid-cols-3 gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100"
+        >
+          <div>
+            <span class="label-small text-gray-500 block">Stock Actual</span>
+            <span class="body-normal font-bold text-brand-primary">{{
+              productToView?.inStock
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Warning Stock</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.stockWarning
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Punto Reorden</span>
+            <span class="body-normal font-semibold text-dark-1">{{
+              productToView?.minimumReorderPoint
+            }}</span>
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Costo</span>
+            <span class="body-normal font-semibold text-dark-1"
+              >${{ productToView?.price || 0 }}</span
+            >
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Precio General</span>
+            <span class="body-normal font-semibold text-dark-1"
+              >${{ productToView?.generalSalePrice || 0 }}</span
+            >
+          </div>
+          <div>
+            <span class="label-small text-gray-500 block">Precio Distribuidor</span>
+            <span class="body-normal font-semibold text-dark-1"
+              >${{ productToView?.distributorSalePrice || 0 }}</span
+            >
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="productToView?.isSerialized">
+        <h3 class="label-normal font-bold text-dark-1 mb-3">Números de Serie / IMEI</h3>
+        <div
+          *ngIf="productToView!.serialNumbers!.length > 0; else noSerials"
+          class="bg-gray-50 p-4 rounded-2xl border border-gray-100 max-h-37.5 overflow-y-auto scroll-smooth"
+        >
+          <div class="grid grid-cols-2 gap-2">
+            <div
+              *ngFor="let serial of productToView!.serialNumbers; let i = index"
+              class="body-small text-dark-1 bg-white p-2 rounded-lg border border-gray-200"
+            >
+              <span class="font-bold text-gray-500 mr-2">#{{ i + 1 }}:</span>
+              {{ serial || 'Sin registrar' }}
+            </div>
+          </div>
+        </div>
+        <ng-template #noSerials>
+          <p class="body-small text-gray-400 italic">
+            No hay números de serie registrados para este producto.
+          </p>
+        </ng-template>
+      </div>
+    </div>
+
+    <div class="p-6 bg-gray-50 flex justify-end border-t border-gray-100 shrink-0">
+      <button
+        (click)="closeDetailsModal()"
+        class="px-6 py-2.5 rounded-[14px] bg-dark-1 text-white label-normal font-bold hover:opacity-90 transition-opacity"
+      >
+        Cerrar
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isDeleteModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-100 p-8 flex flex-col items-center text-center border border-gray-100 animate-fade-in"
+  >
+    <div
+      class="h-16 w-16 rounded-full bg-error-subtle text-brand-primary flex items-center justify-center mb-6"
+    >
+      <fa-icon [icon]="faTriangleExclamation" class="text-3xl"></fa-icon>
+    </div>
+    <h3 class="heading-5 mb-3">Eliminar producto</h3>
+    <p class="body-normal text-dark-2 mb-8">
+      ¿Está seguro de que desea eliminar el producto
+      <strong class="text-dark-1">“{{ productToDelete?.name }}”</strong>?
+    </p>
+    <div class="flex justify-center gap-4 w-full">
+      <button
+        (click)="closeDeleteModal()"
+        class="flex-1 py-3 rounded-2xl bg-gray-100 text-dark-2 label-normal hover:bg-gray-200 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="confirmDelete()"
+        class="flex-1 py-3 rounded-2xl bg-brand-primary text-white label-normal hover:opacity-90 transition-opacity shadow-sm"
+      >
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>

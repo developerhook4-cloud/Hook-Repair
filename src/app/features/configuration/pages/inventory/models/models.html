@@ -1,0 +1,247 @@
+<div
+  class="flex-1 min-h-0 flex flex-col bg-white rounded-2xl p-6 md:p-10 shadow-sm overflow-y-auto relative scroll-smooth"
+>
+  <div
+    *ngIf="showSuccessToast"
+    class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-brand-primary text-white px-8 py-3 rounded-full shadow-2xl flex items-center justify-center gap-3 z-100 transition-opacity duration-300"
+  >
+    <span class="label-normal font-bold">Cambios guardados</span>
+  </div>
+
+  <div class="w-full flex flex-col flex-1">
+    <h2 class="heading-5 mb-8 text-dark-1">Modelos de dispositivos</h2>
+
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+      <div class="relative w-full sm:w-[320px]">
+        <fa-icon
+          [icon]="faSearch"
+          class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+        ></fa-icon>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="currentPage = 1"
+          placeholder="Buscar modelo o marca..."
+          class="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-full focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-400 shadow-sm"
+        />
+      </div>
+
+      <button
+        (click)="openCreateModal()"
+        class="w-full sm:w-auto bg-brand-primary text-white px-6 py-2.5 rounded-xl label-normal font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm"
+      >
+        <fa-icon [icon]="faPlus" class="text-xs"></fa-icon> Agregar nuevo dispositivo
+      </button>
+    </div>
+
+    <div
+      class="w-full border border-gray-100 rounded-[20px] bg-white flex flex-col mb-6 overflow-hidden shadow-sm"
+    >
+      <div
+        *ngFor="let item of paginatedModels; let last = last"
+        class="py-4 px-6 flex justify-between items-center transition-colors hover:bg-gray-50"
+        [ngClass]="{ 'border-b border-gray-100': !last }"
+      >
+        <div class="flex flex-col gap-0.5">
+          <h4 class="label-normal font-bold text-dark-1">{{ item.name }}</h4>
+          <p class="body-normal text-gray-400">{{ item.brandName }}</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button
+            (click)="openEditModal(item)"
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-brand-primary transition-colors"
+          >
+            <fa-icon [icon]="faPen"></fa-icon>
+          </button>
+          <button
+            (click)="openDeleteModal(item)"
+            class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <fa-icon [icon]="faTrashCan"></fa-icon>
+          </button>
+        </div>
+      </div>
+
+      <div
+        *ngIf="paginatedModels.length === 0"
+        class="py-12 flex flex-col items-center justify-center text-gray-400"
+      >
+        <p class="body-normal">No se encontraron modelos.</p>
+      </div>
+    </div>
+
+    <div
+      class="mt-auto relative flex justify-center items-center w-full body-normal font-semibold text-dark-2"
+    >
+      <div
+        class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+      >
+        <button
+          (click)="goToPage(currentPage - 1)"
+          [disabled]="currentPage === 1"
+          class="text-gray-400 hover:text-dark-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <fa-icon [icon]="faChevronLeft"></fa-icon>
+        </button>
+        <div class="flex items-center gap-3">
+          <button
+            *ngFor="let page of pagesArray"
+            (click)="goToPage(page)"
+            class="w-6 h-6 flex items-center justify-center rounded-full transition-colors label-normal"
+            [ngClass]="
+              currentPage === page ? 'bg-brand-primary text-white' : 'hover:text-brand-primary'
+            "
+          >
+            {{ page }}
+          </button>
+        </div>
+        <button
+          (click)="goToPage(currentPage + 1)"
+          [disabled]="currentPage === totalPages"
+          class="text-dark-1 hover:text-brand-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <fa-icon [icon]="faChevronRight"></fa-icon>
+        </button>
+      </div>
+      <div class="hidden md:flex items-center gap-3 absolute right-0">
+        <span>Ir a pág.</span>
+        <input
+          type="number"
+          [(ngModel)]="pageInput"
+          (change)="goToPage(pageInput)"
+          min="1"
+          [max]="totalPages"
+          class="bg-gray-100 rounded-lg w-9 h-9 text-center p-0 text-gray-600 focus:outline-none focus:ring-1 focus:ring-brand-primary"
+        />
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Crear/Editar -->
+<div
+  *ngIf="isModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-md flex flex-col border border-gray-100 overflow-visible"
+  >
+    <div class="p-6 md:p-8 pb-4">
+      <div class="flex justify-between items-start mb-6">
+        <h2 class="heading-5 text-dark-1">
+          {{ modalMode === 'create' ? 'Agregar dispositivo' : 'Editar dispositivo' }}
+        </h2>
+        <button (click)="closeModal()" class="text-gray-400 hover:text-dark-1 transition-colors">
+          <fa-icon [icon]="faXmark" class="text-xl"></fa-icon>
+        </button>
+      </div>
+
+      <div class="flex flex-col gap-5">
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal text-dark-1"
+            >Nombre <span class="text-brand-primary">*</span></label
+          >
+          <input
+            type="text"
+            [(ngModel)]="currentModel!.name"
+            placeholder="Ej. iPhone 16"
+            class="w-full border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal text-dark-1"
+          />
+        </div>
+
+        <div class="flex flex-col gap-1.5">
+          <label class="label-normal text-dark-1"
+            >Marca <span class="text-brand-primary">*</span></label
+          >
+          <div class="relative w-full dropdown-container">
+            <button
+              (click)="toggleBrandDropdown($event)"
+              type="button"
+              class="w-full bg-white border border-gray-300 px-4 py-2.5 rounded-[14px] body-normal text-dark-1 flex items-center justify-between hover:border-brand-primary transition-colors focus:outline-none focus:border-brand-primary text-left"
+            >
+              {{ currentSelectedBrandName }}
+              <fa-icon
+                [icon]="faChevronDown"
+                class="text-sm text-gray-400 transition-transform duration-200"
+                [ngClass]="{ 'rotate-180': isBrandDropdownOpen }"
+              ></fa-icon>
+            </button>
+
+            <div
+              *ngIf="isBrandDropdownOpen"
+              class="absolute bottom-full left-0 mb-1 w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-60 p-1.5 max-h-48 overflow-y-auto"
+            >
+              <ul class="flex flex-col text-sm font-semibold">
+                <li
+                  *ngFor="let brand of availableBrands"
+                  (click)="selectBrand(brand)"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                  [ngClass]="
+                    brand.id === currentModel!.brandId
+                      ? 'text-brand-primary bg-red-50'
+                      : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                  "
+                >
+                  {{ brand.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="p-6 md:px-8 bg-gray-50 flex justify-end gap-3 mt-4 border-t border-gray-100 rounded-b-2xl"
+    >
+      <button
+        (click)="closeModal()"
+        class="px-5 py-2.5 rounded-lg bg-gray-200 text-dark-2 label-normal font-bold hover:bg-gray-300 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="saveModel()"
+        [disabled]="!currentModel!.name || !currentModel!.brandId"
+        class="px-5 py-2.5 rounded-lg bg-brand-primary text-white label-normal font-bold hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        Guardar cambios
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Borrar -->
+<div
+  *ngIf="isDeleteModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-100 p-8 flex flex-col items-center text-center border border-gray-100 animate-fade-in"
+  >
+    <div
+      class="h-16 w-16 rounded-full bg-error-subtle text-brand-primary flex items-center justify-center mb-6"
+    >
+      <fa-icon [icon]="faTriangleExclamation" class="text-3xl"></fa-icon>
+    </div>
+    <h3 class="heading-5 mb-3">Eliminar modelo</h3>
+    <p class="body-normal text-dark-2 mb-8">
+      ¿Está seguro de que desea eliminar el modelo
+      <strong class="text-dark-1">“{{ modelToDelete?.name }}”</strong>?
+    </p>
+    <div class="flex justify-center gap-4 w-full">
+      <button
+        (click)="closeDeleteModal()"
+        class="flex-1 py-3 rounded-2xl bg-gray-100 text-dark-2 label-normal hover:bg-gray-200 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="confirmDelete()"
+        class="flex-1 py-3 rounded-2xl bg-brand-primary text-white label-normal hover:opacity-90 transition-opacity shadow-sm"
+      >
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>

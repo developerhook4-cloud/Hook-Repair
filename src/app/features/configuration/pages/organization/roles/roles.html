@@ -1,0 +1,412 @@
+<div
+  #scrollContainer
+  class="flex-1 min-h-0 flex flex-col bg-white rounded-2xl p-6 md:p-10 shadow-sm overflow-y-auto relative scroll-smooth"
+>
+  <div
+    *ngIf="showSuccessToast"
+    class="fixed bottom-12 left-1/2 -translate-x-1/2 bg-brand-primary text-white px-8 py-3 rounded-full shadow-2xl flex items-center justify-center gap-3 z-100 transition-opacity duration-300"
+  >
+    <span class="label-normal font-bold">Cambios guardados</span>
+  </div>
+
+  <div class="w-full flex flex-col">
+    <h2 class="heading-5 mb-8">Roles, permisos y accesos.</h2>
+
+    <div class="flex flex-wrap items-stretch gap-4 mb-8">
+      <div
+        (click)="switchTab('roles')"
+        class="rounded-lg py-2 px-4 w-72 flex flex-col justify-center cursor-pointer transition-colors"
+        [ngClass]="
+          activeTab === 'roles'
+            ? 'bg-brand-primary text-white'
+            : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100'
+        "
+      >
+        <h4
+          class="label-normal font-bold"
+          [ngClass]="activeTab === 'roles' ? 'text-white' : 'text-dark-1'"
+        >
+          Roles
+        </h4>
+        <p
+          class="text-xs mt-1 whitespace-nowrap overflow-hidden text-ellipsis"
+          [ngClass]="activeTab === 'roles' ? 'text-white/80' : 'text-gray-400'"
+        >
+          Configuración de roles.
+        </p>
+      </div>
+
+      <div
+        (click)="switchTab('permisos')"
+        class="rounded-lg py-2 px-4 w-72 flex flex-col justify-center cursor-pointer transition-colors"
+        [ngClass]="
+          activeTab === 'permisos'
+            ? 'bg-brand-primary text-white'
+            : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-gray-100'
+        "
+      >
+        <h4
+          class="label-normal font-bold"
+          [ngClass]="activeTab === 'permisos' ? 'text-white' : 'text-dark-1'"
+        >
+          Permisos
+        </h4>
+        <p
+          class="text-xs mt-1 whitespace-nowrap overflow-hidden text-ellipsis"
+          [ngClass]="activeTab === 'permisos' ? 'text-white/80' : 'text-gray-400'"
+        >
+          Controlar a que pueda acceder cada rol.
+        </p>
+      </div>
+    </div>
+
+    <ng-container *ngIf="activeTab === 'roles'">
+      <div class="border border-gray-200 rounded-[20px] bg-white flex flex-col mb-6">
+        <div
+          class="flex flex-col md:flex-row justify-between items-center p-6 gap-4 border-b border-gray-200"
+        >
+          <div class="relative w-full md:w-80">
+            <fa-icon
+              [icon]="faSearch"
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            ></fa-icon>
+            <input
+              type="text"
+              [(ngModel)]="searchRoleTerm"
+              placeholder="Buscar rol..."
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-400"
+            />
+          </div>
+
+          <button
+            (click)="openAddRoleModal()"
+            class="w-full md:w-auto bg-brand-primary text-white px-6 py-2.5 rounded-lg label-normal font-bold flex items-center justify-center gap-2 hover:opacity-90 transition-opacity shadow-sm"
+          >
+            <fa-icon [icon]="faPlus" class="text-xs"></fa-icon> Agregar nuevo rol
+          </button>
+        </div>
+
+        <div class="flex flex-col w-full px-6">
+          <div
+            *ngFor="let role of paginatedRoles; let last = last"
+            class="py-5 flex justify-between items-center"
+            [ngClass]="{ 'border-b border-gray-200': !last }"
+          >
+            <div>
+              <h4 class="label-normal font-bold text-dark-1 mb-1">{{ role.name }}</h4>
+              <p class="body-normal text-gray-400">
+                {{ formatPermissionsForDisplay(role.permissions) }}
+              </p>
+            </div>
+            <button
+              (click)="openDeleteModal(role)"
+              class="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+            >
+              <fa-icon [icon]="faTrashCan"></fa-icon>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div
+        class="mt-auto pt-2 flex justify-between md:justify-end items-center gap-12 w-full body-normal font-semibold text-dark-2"
+      >
+        <div
+          class="flex items-center gap-3 bg-white px-4 py-2 rounded-full shadow-[0_2px_8px_rgba(0,0,0,0.08)]"
+        >
+          <button
+            (click)="goToPage(currentPage - 1)"
+            [disabled]="currentPage === 1"
+            class="text-gray-400 hover:text-dark-1 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <fa-icon [icon]="faChevronLeft"></fa-icon>
+          </button>
+
+          <div class="flex items-center gap-3">
+            <button
+              *ngFor="let page of pagesArray"
+              (click)="goToPage(page)"
+              class="w-6 h-6 flex items-center justify-center rounded-full transition-colors label-normal"
+              [ngClass]="
+                currentPage === page ? 'bg-brand-primary text-white' : 'hover:text-brand-primary'
+              "
+            >
+              {{ page }}
+            </button>
+          </div>
+          <button
+            (click)="goToPage(currentPage + 1)"
+            [disabled]="currentPage === totalPages"
+            class="text-dark-1 hover:text-brand-primary disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            <fa-icon [icon]="faChevronRight"></fa-icon>
+          </button>
+        </div>
+
+        <div class="hidden md:flex items-center gap-3">
+          <span>Ir a pág.</span>
+          <input
+            type="number"
+            [(ngModel)]="pageInput"
+            (change)="goToPage(pageInput)"
+            min="1"
+            [max]="totalPages"
+            class="bg-gray-100 rounded-lg w-9 h-9 text-center p-0 text-gray-600 focus:outline-none focus:ring-1 focus:ring-brand-primary"
+          />
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-container *ngIf="activeTab === 'permisos'">
+      <div class="border border-gray-200 rounded-[20px] bg-white flex flex-col mb-6">
+        <div
+          class="flex flex-col md:flex-row justify-between items-center p-6 gap-4 border-b border-gray-200"
+        >
+          <div class="relative w-full md:w-87.5">
+            <fa-icon
+              [icon]="faSearch"
+              class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"
+            ></fa-icon>
+            <input
+              type="text"
+              [(ngModel)]="searchPermissionTerm"
+              placeholder="Buscar permisos (inventario, pos, rec...)"
+              class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:border-brand-primary body-normal text-dark-1 placeholder-gray-400"
+            />
+          </div>
+
+          <div class="relative w-full md:w-56 dropdown-container">
+            <button
+              (click)="toggleRoleDropdown($event)"
+              class="w-full bg-brand-primary text-white px-5 py-2.5 rounded-lg label-normal font-bold flex items-center justify-between hover:opacity-90 transition-opacity shadow-sm"
+            >
+              {{ selectedRole?.name }}
+              <fa-icon
+                [icon]="faChevronDown"
+                class="text-sm transition-transform duration-200"
+                [ngClass]="{ 'rotate-180': isRoleDropdownOpen }"
+              ></fa-icon>
+            </button>
+            <div
+              *ngIf="isRoleDropdownOpen"
+              class="absolute top-full right-0 mt-2 w-full bg-white rounded-xl shadow-[0_4px_20px_rgba(0,0,0,0.1)] border border-gray-100 z-10 p-1.5"
+            >
+              <ul class="flex flex-col text-sm font-semibold">
+                <li
+                  *ngFor="let role of roles"
+                  (click)="selectRole(role)"
+                  class="px-4 py-2.5 rounded-md cursor-pointer transition-colors"
+                  [ngClass]="
+                    role === selectedRole
+                      ? 'text-brand-primary'
+                      : 'text-dark-2 hover:bg-red-50 hover:text-brand-primary'
+                  "
+                >
+                  {{ role.name }}
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col w-full p-6 gap-3">
+          <div
+            *ngFor="let item of filteredPermissions"
+            class="border border-gray-200 rounded-2xl p-4 md:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors hover:border-gray-300"
+          >
+            <h4 class="label-normal font-bold text-dark-1">{{ item.label }}</h4>
+            <div class="flex items-center gap-6 md:gap-8 body-normal font-semibold text-dark-2">
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="item.view"
+                  class="w-4.5 h-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary cursor-pointer"
+                />
+                Ver
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="item.update"
+                  class="w-4.5 h-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary cursor-pointer"
+                />
+                Editar
+              </label>
+              <label class="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [(ngModel)]="item.delete"
+                  class="w-4.5 h-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary cursor-pointer"
+                />
+                Eliminar
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-auto pt-2 flex justify-end items-center gap-4 w-full">
+        <button
+          (click)="cancelChanges()"
+          class="px-6 py-2.5 rounded-lg bg-gray-100 text-dark-2 font-bold label-normal hover:bg-gray-200 transition-colors"
+        >
+          Cancelar
+        </button>
+        <button
+          (click)="saveChanges()"
+          class="px-6 py-2.5 rounded-lg bg-brand-primary text-white font-bold label-normal hover:opacity-90 transition-opacity shadow-sm"
+        >
+          Guardar cambios
+        </button>
+      </div>
+    </ng-container>
+  </div>
+</div>
+
+<div
+  *ngIf="isAddRoleModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4 md:p-6"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-4xl flex flex-col max-h-[90vh] overflow-hidden border border-gray-100"
+  >
+    <div class="p-8 pb-4">
+      <div class="flex justify-between items-start mb-6">
+        <h2 class="heading-5 text-dark-1">Agregar nuevo rol</h2>
+        <button
+          (click)="closeAddRoleModal()"
+          class="text-gray-400 hover:text-dark-1 transition-colors"
+        >
+          <fa-icon [icon]="faXmark" class="text-xl"></fa-icon>
+        </button>
+      </div>
+
+      <div class="flex flex-col mb-6">
+        <label class="label-normal font-semibold text-dark-1 mb-2">
+          Nombre del rol <span class="text-brand-primary">*</span>
+        </label>
+        <input
+          type="text"
+          [value]="newRoleName"
+          (input)="updateRoleName($event)"
+          placeholder="Introduzca el nombre del rol"
+          class="w-full md:w-80 border border-gray-300 rounded-[14px] px-4 py-2.5 focus:outline-none focus:border-brand-primary body-normal placeholder-gray-400"
+        />
+      </div>
+
+      <div class="mb-2">
+        <label class="label-normal text-dark-1"
+          >Permisos para el nuevo rol <span class="text-brand-primary">*</span></label
+        >
+      </div>
+    </div>
+
+    <div class="px-8 overflow-y-auto flex-1 flex flex-col gap-3 pb-4">
+      <div
+        *ngFor="let item of newRolePermissions"
+        class="border border-gray-200 rounded-2xl p-4 md:px-6 flex flex-col md:flex-row md:items-center justify-between gap-4 transition-colors hover:border-gray-300"
+      >
+        <h4
+          class="label-normal font-bold text-dark-1"
+          [ngClass]="{ 'opacity-50': !newRoleName.trim() }"
+        >
+          {{ item.module }}
+        </h4>
+        <div class="flex items-center gap-6 md:gap-8 body-normal font-semibold text-dark-2">
+          <label
+            class="flex items-center gap-2 transition-opacity duration-200"
+            [ngClass]="newRoleName.trim() ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'"
+          >
+            <input
+              type="checkbox"
+              [disabled]="!newRoleName.trim()"
+              [(ngModel)]="item.view"
+              class="w-4.5 h-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary transition-colors"
+              [ngClass]="newRoleName.trim() ? 'cursor-pointer' : 'cursor-not-allowed'"
+            />
+            Ver
+          </label>
+
+          <label
+            class="flex items-center gap-2 transition-opacity duration-200"
+            [ngClass]="newRoleName.trim() ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'"
+          >
+            <input
+              type="checkbox"
+              [disabled]="!newRoleName.trim()"
+              [(ngModel)]="item.update"
+              class="w-4.5 h-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary transition-colors"
+              [ngClass]="newRoleName.trim() ? 'cursor-pointer' : 'cursor-not-allowed'"
+            />
+            Editar
+          </label>
+
+          <label
+            class="flex items-center gap-2 transition-opacity duration-200"
+            [ngClass]="newRoleName.trim() ? 'cursor-pointer' : 'cursor-not-allowed opacity-50'"
+          >
+            <input
+              type="checkbox"
+              [disabled]="!newRoleName.trim()"
+              [(ngModel)]="item.delete"
+              class="w-4.5 h-4.5 rounded border-gray-300 text-brand-primary focus:ring-brand-primary accent-brand-primary transition-colors"
+              [ngClass]="newRoleName.trim() ? 'cursor-pointer' : 'cursor-not-allowed'"
+            />
+            Eliminar
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6 md:px-8 border-t border-gray-100 bg-white flex justify-end gap-4 mt-auto">
+      <button
+        (click)="closeAddRoleModal()"
+        class="px-6 py-2.5 rounded-lg bg-gray-100 text-dark-2 font-bold label-normal hover:bg-gray-200 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="saveNewRole()"
+        [disabled]="!newRoleName.trim()"
+        class="px-6 py-2.5 rounded-lg bg-brand-primary text-white font-bold label-normal transition-all shadow-sm"
+        [ngClass]="newRoleName.trim() ? 'hover:opacity-90' : 'opacity-50 cursor-not-allowed'"
+      >
+        Crear rol
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="isDeleteModalOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/20 backdrop-blur-sm p-4"
+>
+  <div
+    class="bg-white rounded-2xl shadow-2xl w-full max-w-100 p-8 flex flex-col items-center text-center border border-gray-100 animate-fade-in"
+  >
+    <div
+      class="h-16 w-16 rounded-full bg-error-subtle text-brand-primary flex items-center justify-center mb-6"
+    >
+      <fa-icon [icon]="faTriangleExclamation" class="text-3xl"></fa-icon>
+    </div>
+    <h3 class="heading-5 mb-3">Eliminar rol</h3>
+    <p class="body-normal text-dark-2 mb-8">
+      ¿Está seguro de que desea eliminar el rol
+      <strong class="text-dark-1">“{{ roleToDelete?.name }}”</strong>?
+    </p>
+    <div class="flex justify-center gap-4 w-full">
+      <button
+        (click)="closeDeleteModal()"
+        class="flex-1 py-3 rounded-2xl bg-gray-100 text-dark-2 label-normal hover:bg-gray-200 transition-colors"
+      >
+        Cancelar
+      </button>
+      <button
+        (click)="confirmDelete()"
+        class="flex-1 py-3 rounded-2xl bg-brand-primary text-white label-normal hover:opacity-90 transition-opacity shadow-sm"
+      >
+        Sí, eliminar
+      </button>
+    </div>
+  </div>
+</div>
