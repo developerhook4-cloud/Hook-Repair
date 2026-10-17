@@ -1,0 +1,55 @@
+# Caddyfile del frontend (Railway / Railpack)
+# Sirve la app Angular y reenvia /api/* al backend por la red privada de Railway,
+# de modo que el navegador solo habla con un dominio.
+
+{
+	admin off
+	persist_config off
+	auto_https off
+
+	log {
+		format json
+	}
+
+	servers {
+		trusted_proxies static private_ranges 100.0.0.0/8
+	}
+}
+
+:{$PORT:80} {
+	log {
+		format json
+	}
+
+	handle /health {
+		respond 200
+	}
+
+	# Todo lo que empiece con /api va al backend.
+	# Se puede cambiar con la variable API_UPSTREAM en el servicio del frontend.
+	handle /api/* {
+		reverse_proxy {$API_UPSTREAM:http://hook-repair-backend.railway.internal:8080}
+	}
+
+	# El resto es la aplicacion Angular (con fallback a index.html).
+	handle {
+		root * /app/dist/HookRepair/browser
+
+		header {
+			X-Content-Type-Options "nosniff"
+			-Server
+		}
+
+		encode {
+			gzip
+			zstd
+		}
+
+		try_files {path} {path}.html {path}/index.html /index.html
+
+		file_server {
+			hide .git
+			hide .env*
+		}
+	}
+}
