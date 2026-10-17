@@ -19,6 +19,7 @@ import { ClientsComponent } from './features/configuration/pages/crm/clients/cli
 import { ProductsComponent } from './features/inventory/pages/products/products.component';
 import { PurchaseOrdersComponent } from './features/inventory/pages/purchase-orders/purchase-orders.component';
 import { MovementsComponent } from './features/inventory/pages/movements/movements.component';
+import { ComingSoonComponent } from './features/coming-soon/coming-soon.component';
 
 export const routes: Routes = [
   // canActivate: [authGuard], agregar para proteger rutas que requieran autenticación
@@ -111,6 +112,24 @@ export const routes: Routes = [
     component: OrganizationsPageComponent,
     canActivate: [authGuard, PermissionGuard],
     data: { permission: 'Organizations.View' },
+  },
+  {
+    path: 'point-of-sale',
+    component: ComingSoonComponent,
+    canActivate: [authGuard],
+    data: { title: 'Punto de venta' },
+  },
+  {
+    path: 'repairs',
+    component: ComingSoonComponent,
+    canActivate: [authGuard],
+    data: { title: 'Reparaciones' },
+  },
+  {
+    path: 'reports',
+    component: ComingSoonComponent,
+    canActivate: [authGuard],
+    data: { title: 'Reportes' },
   },
   { path: '', redirectTo: 'login', pathMatch: 'full' },
   { path: '**', redirectTo: 'login', pathMatch: 'full' },
